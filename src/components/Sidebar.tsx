@@ -133,16 +133,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       path: "/settings",
       icon: <SettingsIcon size={20} />,
     },
-    {
-      label: "Payment",
-      icon: <Wallet size={20} />,
-      subItems: [
-        { label: "Request Form", path: "/payment/request-form", icon: <ClipboardList size={16} /> },
-        { label: "Approval", path: "/payment/approval", icon: <CheckCircle size={16} /> },
-        { label: "Make Payment", path: "/payment/make-payment", icon: <DollarSign size={16} /> },
-        { label: "Tally Entry", path: "/payment/tally-entry", icon: <Receipt size={16} /> },
-      ]
-    },
+    // {
+    //   label: "Payment",
+    //   icon: <Wallet size={20} />,
+    //   subItems: [
+    //     { label: "Request Form", path: "/payment/request-form", icon: <ClipboardList size={16} /> },
+    //     { label: "Approval", path: "/payment/approval", icon: <CheckCircle size={16} /> },
+    //     { label: "Make Payment", path: "/payment/make-payment", icon: <DollarSign size={16} /> },
+    //     { label: "Tally Entry", path: "/payment/tally-entry", icon: <Receipt size={16} /> },
+    //   ]
+    // },
     // {
     //   label: "Account FMS",
     //   icon: <Banknote size={20} />,

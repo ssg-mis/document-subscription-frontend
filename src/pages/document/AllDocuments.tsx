@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, FileText, Download, Edit, MoreHorizontal, Mail, MessageCircle, Share2, RefreshCw, Save, X } from 'lucide-react';
+import { Plus, Search, FileText, Download, Edit, MessageCircle, RefreshCw, Save, X } from 'lucide-react';
 import useHeaderStore from '../../store/headerStore';
 import AddDocument from './AddDocument';
 import ShareModal from './ShareModal';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+
 import { formatDate } from '../../utils/dateFormatter';
 import { toast } from 'react-hot-toast';
 import { fetchAllDocuments, updateDocument, mapBackendToFrontend, BackendDocument } from '../../utils/documentApi';
@@ -89,8 +89,8 @@ const AllDocuments = () => {
     
     // Share Modal State
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-    const [shareType, setShareType] = useState<'email' | 'whatsapp' | 'both' | null>(null);
-    const [shareDoc, setShareDoc] = useState<{ id: string, name: string } | null>(null);
+    const [shareType, setShareType] = useState<'whatsapp' | null>(null);
+    const [shareDoc, setShareDoc] = useState<{ id: string, name: string, url?: string, documentType?: string, category?: string, companyName?: string, needsRenewal?: boolean, renewalDate?: string } | null>(null);
 
     const handleEdit = (item: DocumentItem) => {
         setEditingDocId(item.id);
@@ -122,7 +122,7 @@ const AllDocuments = () => {
         }
     };
 
-    const openShare = (type: 'email' | 'whatsapp' | 'both', doc: { id: string, name: string }) => {
+    const openShare = (type: 'whatsapp', doc: { id: string, name: string, url?: string, documentType?: string, category?: string, companyName?: string, needsRenewal?: boolean, renewalDate?: string }) => {
         setShareType(type);
         setShareDoc(doc);
         setIsShareModalOpen(true);
@@ -163,14 +163,6 @@ const AllDocuments = () => {
                                 </span>
                                 <div className="hidden sm:block h-4 w-px bg-gray-200 mx-1"></div>
                                 <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                    <button
-                                        onClick={() => openShare('email', { id: 'batch', name: `${selectedIds.size} Documents` })}
-                                        className="flex-1 sm:flex-none justify-center flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100"
-                                        title="Share via Email"
-                                    >
-                                        <Mail size={14} />
-                                        Email
-                                    </button>
                                     <button
                                         onClick={() => openShare('whatsapp', { id: 'batch', name: `${selectedIds.size} Documents` })}
                                         className="flex-1 sm:flex-none justify-center flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-100"
@@ -267,39 +259,13 @@ const AllDocuments = () => {
                                             />
                                         </td>
                                         <td className="px-3 py-2 text-center">
-                                            <DropdownMenu.Root>
-                                                <DropdownMenu.Trigger asChild>
-                                                    <button className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors outline-none">
-                                                        <MoreHorizontal size={20} />
-                                                    </button>
-                                                </DropdownMenu.Trigger>
-                                                <DropdownMenu.Portal>
-                                                    <DropdownMenu.Content className="min-w-[160px] bg-white rounded-lg shadow-xl border border-gray-100 p-1.5 z-50 animate-fade-in-up" sideOffset={5} align="start">
-                                                        <DropdownMenu.Item
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-md cursor-pointer outline-none"
-                                                            onClick={() => openShare('email', { id: item.id, name: item.documentName })}
-                                                        >
-                                                            <Mail size={16} className="text-blue-500" />
-                                                            Email
-                                                        </DropdownMenu.Item>
-                                                        <DropdownMenu.Item
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-md cursor-pointer outline-none"
-                                                            onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName })}
-                                                        >
-                                                            <MessageCircle size={16} className="text-green-500" />
-                                                            WhatsApp
-                                                        </DropdownMenu.Item>
-                                                        <DropdownMenu.Separator className="h-px bg-gray-100 my-1" />
-                                                        <DropdownMenu.Item
-                                                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-md cursor-pointer outline-none"
-                                                            onClick={() => openShare('both', { id: item.id, name: item.documentName })}
-                                                        >
-                                                            <Share2 size={16} className="text-purple-500" />
-                                                            Share Both
-                                                        </DropdownMenu.Item>
-                                                    </DropdownMenu.Content>
-                                                </DropdownMenu.Portal>
-                                            </DropdownMenu.Root>
+                                            <button
+                                                onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName, url: item.fileContent, documentType: item.documentType, category: item.category, companyName: item.companyName, needsRenewal: item.needsRenewal, renewalDate: item.renewalDate })}
+                                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors outline-none"
+                                                title="Share via WhatsApp"
+                                            >
+                                                <MessageCircle size={18} />
+                                            </button>
                                         </td>
                                         {currentUser?.role === 'admin' && (
                                             <td className="px-3 py-2 flex justify-center items-center gap-2">
@@ -494,39 +460,13 @@ const AllDocuments = () => {
                                         <span className="text-gray-400 text-xs">-</span>
                                     )}
                                     <div className="flex gap-2">
-                                        <DropdownMenu.Root>
-                                            <DropdownMenu.Trigger asChild>
-                                                <button className="p-1.5 text-indigo-600 bg-indigo-50 rounded-lg">
-                                                    <Share2 size={14} />
-                                                </button>
-                                            </DropdownMenu.Trigger>
-                                            <DropdownMenu.Portal>
-                                                <DropdownMenu.Content className="min-w-[160px] bg-white rounded-lg shadow-xl border border-gray-100 p-1.5 z-50 animate-fade-in-up" sideOffset={5} align="end">
-                                                    <DropdownMenu.Item
-                                                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-md cursor-pointer outline-none"
-                                                        onClick={() => openShare('email', { id: item.id, name: item.documentName })}
-                                                    >
-                                                        <Mail size={16} className="text-blue-500" />
-                                                        Email
-                                                    </DropdownMenu.Item>
-                                                    <DropdownMenu.Item
-                                                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-md cursor-pointer outline-none"
-                                                        onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName })}
-                                                    >
-                                                        <MessageCircle size={16} className="text-green-500" />
-                                                        WhatsApp
-                                                    </DropdownMenu.Item>
-                                                    <DropdownMenu.Separator className="h-px bg-gray-100 my-1" />
-                                                    <DropdownMenu.Item
-                                                        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-md cursor-pointer outline-none"
-                                                        onClick={() => openShare('both', { id: item.id, name: item.documentName })}
-                                                    >
-                                                        <Share2 size={16} className="text-purple-500" />
-                                                        Share Both
-                                                    </DropdownMenu.Item>
-                                                </DropdownMenu.Content>
-                                            </DropdownMenu.Portal>
-                                        </DropdownMenu.Root>
+                                        <button
+                                            onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName, url: item.fileContent, documentType: item.documentType, category: item.category, companyName: item.companyName, needsRenewal: item.needsRenewal, renewalDate: item.renewalDate })}
+                                            className="p-1.5 text-green-600 bg-green-50 rounded-lg"
+                                            title="Share via WhatsApp"
+                                        >
+                                            <MessageCircle size={14} />
+                                        </button>
 
                                         {currentUser?.role === 'admin' && (
                                             editingDocId === item.id ? (
@@ -566,6 +506,12 @@ const AllDocuments = () => {
                 type={shareType}
                 documentId={shareDoc?.id || ''}
                 documentName={shareDoc?.name || ''}
+                documentUrl={shareDoc?.url || ''}
+                documentType={shareDoc?.documentType || ''}
+                category={shareDoc?.category || ''}
+                companyName={shareDoc?.companyName || ''}
+                needsRenewal={shareDoc?.needsRenewal || false}
+                renewalDate={shareDoc?.renewalDate || ''}
             />
         </>
     );
