@@ -61,8 +61,8 @@ const Login = () => {
           <div className="text-center">
             <div className="flex justify-center mb-4">
               <div className="relative">
-                <div className="h-40 w-40 flex items-center justify-center transform transition-all duration-300 hover:scale-105">
-                  <img src="/sagar.png" alt="Logo" className="h-full w-full object-cover rounded-full shadow-md" />
+                <div className="h-30 w-30 flex items-center justify-center transform transition-all duration-300 hover:scale-105">
+                  <img src="/shrishyam.png" alt="Logo" className="h-full w-full object-cover shadow-md" />
                 </div>
               </div>
             </div>
