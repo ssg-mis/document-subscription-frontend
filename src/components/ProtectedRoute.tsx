@@ -31,7 +31,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Skip permission check for public routes
     const publicPaths = ['/training-video'];
-    if (publicPaths.includes(path)) {
+    const normalizedPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
+    if (publicPaths.includes(normalizedPath)) {
       return <>{children}</>;
     }
 
