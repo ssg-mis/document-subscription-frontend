@@ -90,7 +90,8 @@ const AllDocuments = () => {
     // Share Modal State
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [shareType, setShareType] = useState<'whatsapp' | null>(null);
-    const [shareDoc, setShareDoc] = useState<{ id: string, name: string, url?: string, documentType?: string, category?: string, companyName?: string, needsRenewal?: boolean, renewalDate?: string } | null>(null);
+    const [shareDoc, setShareDoc] = useState<{ id: string, name: string, url?: string, documentType?: string, category?: string, companyName?: string, needsRenewal?: boolean, renewalDate?: string, sn?: string } | null>(null);
+
 
     const handleEdit = (item: DocumentItem) => {
         setEditingDocId(item.id);
@@ -122,11 +123,12 @@ const AllDocuments = () => {
         }
     };
 
-    const openShare = (type: 'whatsapp', doc: { id: string, name: string, url?: string, documentType?: string, category?: string, companyName?: string, needsRenewal?: boolean, renewalDate?: string }) => {
+    const openShare = (type: 'whatsapp', doc: { id: string, name: string, url?: string, documentType?: string, category?: string, companyName?: string, needsRenewal?: boolean, renewalDate?: string, sn?: string }) => {
         setShareType(type);
         setShareDoc(doc);
         setIsShareModalOpen(true);
     };
+
 
     const handleDownload = (fileContent: string | undefined, fileName: string | null) => {
         if (!fileContent) {
@@ -260,7 +262,8 @@ const AllDocuments = () => {
                                         </td>
                                         <td className="px-3 py-2 text-center">
                                             <button
-                                                onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName, url: item.fileContent, documentType: item.documentType, category: item.category, companyName: item.companyName, needsRenewal: item.needsRenewal, renewalDate: item.renewalDate })}
+                                                onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName, url: item.fileContent, documentType: item.documentType, category: item.category, companyName: item.companyName, needsRenewal: item.needsRenewal, renewalDate: item.renewalDate, sn: item.sn })}
+
                                                 className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors outline-none"
                                                 title="Share via WhatsApp"
                                             >
@@ -512,7 +515,9 @@ const AllDocuments = () => {
                 companyName={shareDoc?.companyName || ''}
                 needsRenewal={shareDoc?.needsRenewal || false}
                 renewalDate={shareDoc?.renewalDate || ''}
+                documentSerial={shareDoc?.sn || ''}
             />
+
         </>
     );
 };

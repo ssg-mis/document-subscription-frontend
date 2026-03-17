@@ -15,9 +15,10 @@ interface ShareModalProps {
     companyName?: string;
     needsRenewal?: boolean;
     renewalDate?: string;
+    documentSerial?: string; // New
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, documentName, documentUrl, documentType, category, companyName, needsRenewal, renewalDate }) => {
+const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, documentName, documentUrl, documentType, category, companyName, needsRenewal, renewalDate, documentId, documentSerial }) => {
     const [recipientName, setRecipientName] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [message, setMessage] = useState('');
@@ -51,6 +52,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                     needsRenewal: needsRenewal ? 'Yes' : 'No',
                     renewalDate: renewalDate || '',
                     message,
+                    recipientName, // New
+                    documentId,   // New
+                    documentSerial // New
                 }),
             });
 

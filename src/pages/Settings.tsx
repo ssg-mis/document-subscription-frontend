@@ -287,26 +287,7 @@ const Settings = () => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                                        <Bell size={18} className="text-indigo-500" />
-                                        Notifications
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <label className="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
-                                            <span className="text-gray-700 font-medium group-hover:text-indigo-700">Email Notifications</span>
-                                            <div className="w-11 h-6 bg-indigo-600 rounded-full relative transition-colors">
-                                                <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                            </div>
-                                        </label>
-                                        <label className="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 hover:bg-gray-50 transition-all">
-                                            <span className="text-gray-600 font-medium">Browser Alerts</span>
-                                            <div className="w-11 h-6 bg-gray-200 rounded-full relative transition-colors">
-                                                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>

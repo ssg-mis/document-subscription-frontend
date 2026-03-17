@@ -20,7 +20,8 @@ import {
   CreditCard,
   Wallet,
   ClipboardList,
-  Receipt
+  Receipt,
+  PlayCircle
 } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import { getDbPageString } from "../utils/permissions";
@@ -36,6 +37,7 @@ interface MenuItem {
   path?: string;
   icon?: React.ReactNode;
   subItems?: MenuItem[];
+  isPublic?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
@@ -133,6 +135,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       path: "/settings",
       icon: <SettingsIcon size={20} />,
     },
+    {
+      label: "Training Video",
+      path: "/training-video",
+      icon: <PlayCircle size={20} />,
+      isPublic: true,
+    },
     // {
     //   label: "Payment",
     //   icon: <Wallet size={20} />,
@@ -184,7 +192,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         }
       } else {
         // For leaf items (no children), check direct access
-        if (hasPageAccess(item.path)) {
+        if (item.isPublic || hasPageAccess(item.path)) {
           acc.push(item);
         }
       }

@@ -59,6 +59,8 @@ const AddSubscription: React.FC<AddSubscriptionProps> = ({ isOpen, onClose, onSu
         purpose: formData.purpose
       };
 
+      console.log("Paylodssss", payload)
+
       await createSubscription(payload);
       toast.success('Subscription added successfully');
 

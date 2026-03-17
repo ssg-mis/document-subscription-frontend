@@ -44,6 +44,7 @@ import AccountTallyData from "./pages/account/TallyData";
 import AccountAudit from "./pages/account/Audit";
 import AccountRectify from "./pages/account/Rectify";
 import AccountBillFiled from "./pages/account/BillFiled";
+import TrainingVideo from "./pages/TrainingVideo";
 
 // Main Router Configuration
 function App() {
@@ -100,6 +101,7 @@ function App() {
           <Route path="resource-manager" element={<ResourceManager />} />
 
           <Route path="settings" element={<Settings />} />
+          <Route path="training-video" element={<TrainingVideo />} />
 
           {/* Payment Routes */}
           <Route path="payment">

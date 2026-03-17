@@ -118,43 +118,10 @@ export interface SubscriptionRenewalItem {
     renewalStatus: string;
 }
 
-export interface ShareItem {
-    id: string;
-    shareNo: string;
-    dateTime: string;
-    docSerial: string;
-    docName: string;
-    docFile: string;
-    sharedVia: 'Email' | 'WhatsApp';
-    recipientName: string;
-    contactInfo: string;
-}
 
 
-const DUMMY_SHARE_DATA: ShareItem[] = [
-    {
-        id: 'share-1',
-        shareNo: 'SH-001',
-        dateTime: '2024-10-10 10:30',
-        docSerial: 'SN-001',
-        docName: 'Project Proposal_v2.pdf',
-        docFile: 'document.pdf',
-        sharedVia: 'WhatsApp',
-        recipientName: 'Rahul Sharma',
-        contactInfo: '+91 98765 43210'
-    },
-    {
-        id: 'share-2',
-        shareNo: 'SH-002',
-        dateTime: '2024-10-12 11:45',
-        docSerial: 'SN-002',
-        docName: 'Invoice_8822.pdf',
-        docFile: 'document.pdf',
-        sharedVia: 'Email',
-        recipientName: 'Priya Patel',
-        contactInfo: 'priya.patel@example.com'
-    }
-];
+
+
 
 const DUMMY_SUBSCRIPTIONS: SubscriptionItem[] = [
     {
@@ -636,7 +603,7 @@ interface DataState {
     masterData: MasterItem[];
     renewalHistory: RenewalItem[];
     subscriptionRenewalHistory: SubscriptionRenewalItem[];
-    shareHistory: ShareItem[];
+
     addDocument: (item: DocumentItem) => void;
     addDocuments: (items: DocumentItem[]) => void;
     addSubscription: (item: SubscriptionItem) => void;
@@ -644,8 +611,7 @@ interface DataState {
     addMasterData: (item: MasterItem) => void;
     addRenewalHistory: (item: RenewalItem) => void;
     addSubscriptionRenewalHistory: (item: SubscriptionRenewalItem) => void;
-    addShareHistory: (item: ShareItem) => void;
-    resetShareHistory: () => void;
+
     resetSubscriptions: () => void;
     updateDocument: (id: string, updatedItem: Partial<DocumentItem>) => void;
     updateSubscription: (id: string, updatedItem: Partial<SubscriptionItem>) => void;
@@ -1347,7 +1313,6 @@ const useDataStore = create<DataState>()(
                     newFile: null
                 }
             ],
-            shareHistory: DUMMY_SHARE_DATA,
             subscriptionRenewalHistory: [],
             addDocument: (item) => set((state) => ({ documents: [...state.documents, item] })),
             addDocuments: (items) => set((state) => ({ documents: [...state.documents, ...items] })),
@@ -1356,9 +1321,8 @@ const useDataStore = create<DataState>()(
             addMasterData: (item) => set((state) => ({ masterData: [...state.masterData, item] })),
             addRenewalHistory: (item) => set((state) => ({ renewalHistory: [item, ...state.renewalHistory] })),
             addSubscriptionRenewalHistory: (item) => set((state) => ({ subscriptionRenewalHistory: [item, ...state.subscriptionRenewalHistory] })),
-            addShareHistory: (item) => set((state) => ({ shareHistory: [item, ...state.shareHistory] })),
-            resetShareHistory: () => set({ shareHistory: DUMMY_SHARE_DATA }),
-            resetSubscriptions: () => set({ subscriptions: DUMMY_SUBSCRIPTIONS }), /*
+            resetSubscriptions: () => set({ subscriptions: DUMMY_SUBSCRIPTIONS }),
+ /*
                 {
                     id: 'sub-1',
                     sn: 'SN-001',

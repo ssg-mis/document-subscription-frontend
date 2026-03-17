@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 import { X, Save, Plus, Upload, Trash2 } from 'lucide-react';
 import SearchableInput from '../../components/SearchableInput';
 import { createMultipleDocuments } from '../../utils/documentApi';
-import { fetchDocumentTypes, fetchCategories } from '../../utils/masterApi';
+import { fetchDocumentTypes, fetchCategories, fetchAllMasterData, createMasterRecord, MasterItem } from '../../utils/masterApi';
 
 interface DocumentEntry {
     id: string;
@@ -26,6 +26,7 @@ interface AddDocumentProps {
 const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose }) => {
     const [typeOptions, setTypeOptions] = useState<string[]>([]);
     const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+    const [masterData, setMasterData] = useState<MasterItem[]>([]);
 
     const defaultCategories = ['Personal', 'Company', 'Director'];
 
@@ -33,11 +34,24 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose }) => {
     useEffect(() => {
         const loadOptions = async () => {
             try {
-                const [types, categories] = await Promise.all([
+                const [types, categories, allMaster] = await Promise.all([
                     fetchDocumentTypes(),
-                    fetchCategories()
+                    fetchCategories(),
+                    fetchAllMasterData()
                 ]);
                 setTypeOptions(types.filter((t: string) => t)); // Remove empty strings
+                
+                // Map MasterRecord to MasterItem if necessary (though frontend expects MasterItem)
+                // The masterApi.ts has a mapToFrontend utility, but here we can just use the data if fields match
+                const formattedMaster = allMaster.map(item => ({
+                    id: item.id || 0,
+                    companyName: item.company_name,
+                    documentType: item.document_type,
+                    category: item.category,
+                    renewalFilter: item.renewal_filter
+                }));
+                setMasterData(formattedMaster);
+
                 // Merge backend categories with defaults
                 const allCategories = Array.from(new Set([...categories.filter((c: string) => c), ...defaultCategories]));
                 setCategoryOptions(allCategories);
@@ -140,8 +154,10 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose }) => {
 
         try {
             // Map entries to backend format
-            const documentsToCreate = entries.map(entry => {
-                // Also update master data locally (optional but keeps consistency)
+            const documentsToCreate = [];
+            
+            for (const entry of entries) {
+                // Check if master record exists
                 const exists = masterData?.some(m =>
                     m.companyName.toLowerCase() === entry.companyName.toLowerCase() &&
                     m.documentType.toLowerCase() === entry.documentType.toLowerCase() &&
@@ -149,15 +165,31 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose }) => {
                 );
 
                 if (!exists) {
-                    addMasterData({
-                        id: Math.random().toString(36).substr(2, 9),
-                        companyName: entry.companyName,
-                        documentType: entry.documentType,
-                        category: entry.category
-                    });
+                    try {
+                        const newMaster = await createMasterRecord({
+                            company_name: entry.companyName,
+                            document_type: entry.documentType,
+                            category: entry.category,
+                            renewal_filter: entry.needsRenewal
+                        });
+                        
+                        // Update local master data state
+                        const formattedNewMaster = {
+                            id: newMaster.id,
+                            companyName: newMaster.company_name,
+                            documentType: newMaster.document_type,
+                            category: newMaster.category,
+                            renewalFilter: newMaster.renewal_filter
+                        };
+                        setMasterData(prev => [...prev, formattedNewMaster]);
+                    } catch (masterErr) {
+                        console.error('Failed to create master record for:', entry.companyName, masterErr);
+                        // We continue even if master creation fails, or we could bail?
+                        // For now we continue as document creation might still work
+                    }
                 }
 
-                return {
+                documentsToCreate.push({
                     document_name: entry.documentName,
                     document_type: entry.documentType,
                     category: entry.category,
@@ -166,8 +198,8 @@ const AddDocument: React.FC<AddDocumentProps> = ({ isOpen, onClose }) => {
                     need_renewal: entry.needsRenewal ? 'yes' as const : 'no' as const,
                     renewal_date: entry.needsRenewal ? entry.renewalDate : undefined,
                     image: entry.fileContent || undefined
-                };
-            });
+                });
+            }
 
             await createMultipleDocuments(documentsToCreate);
             toast.success(`${documentsToCreate.length} Document(s) added successfully`);

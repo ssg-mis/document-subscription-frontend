@@ -28,6 +28,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check page-level permissions for all dynamic routes including the root dashboard
   if (user && location.pathname !== '/login') {
     const path = location.pathname;
+
+    // Skip permission check for public routes
+    const publicPaths = ['/training-video'];
+    if (publicPaths.includes(path)) {
+      return <>{children}</>;
+    }
+
     const pageAccess = user.pageAccess || [];
     
     const dbPageString = getDbPageString(path);
