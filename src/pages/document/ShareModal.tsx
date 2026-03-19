@@ -15,11 +15,13 @@ interface ShareModalProps {
     companyName?: string;
     needsRenewal?: boolean;
     renewalDate?: string;
-    documentSerial?: string; // New
+    documentSerial?: string;
 }
 
 const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, documentName, documentUrl, documentType, category, companyName, needsRenewal, renewalDate, documentId, documentSerial }) => {
+    const [shareOption, setShareOption] = useState<'whatsapp' | 'email' | 'both'>('whatsapp');
     const [recipientName, setRecipientName] = useState('');
+    const [email, setEmail] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
@@ -29,6 +31,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
             setMessage(`Please find the attached document: ${documentName}`);
             setRecipientName('');
             setWhatsapp('');
+            setEmail('');
+            setShareOption('whatsapp');
         }
     }, [isOpen, documentName]);
 
@@ -43,7 +47,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    phone: whatsapp,
+                    shareOption,
+                    email: (shareOption === 'email' || shareOption === 'both') ? email : undefined,
+                    phone: (shareOption === 'whatsapp' || shareOption === 'both') ? whatsapp : undefined,
                     documentName,
                     documentUrl: documentUrl || '',
                     documentType: documentType || '',
@@ -52,23 +58,25 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                     needsRenewal: needsRenewal ? 'Yes' : 'No',
                     renewalDate: renewalDate || '',
                     message,
-                    recipientName, // New
-                    documentId,   // New
-                    documentSerial // New
+                    recipientName,
+                    documentId,
+                    documentSerial
                 }),
             });
 
             const data = await res.json();
 
             if (!res.ok || !data.success) {
-                throw new Error(data.details || data.error || 'Failed to send message');
+                const errorMessage = typeof data.details === 'object' ? JSON.stringify(data.details) : (data.details || data.error || 'Failed to send message');
+                throw new Error(errorMessage);
             }
 
-            toast.success('Document shared via WhatsApp successfully!');
+            toast.success(`Document shared via ${shareOption} successfully!`);
             onClose();
         } catch (error: any) {
-            console.error('WhatsApp share error:', error);
-            toast.error(error.message || 'Failed to share document');
+            console.error('Share error:', error);
+            const errMsg = error instanceof Error ? error.message : String(error);
+            toast.error(errMsg || 'Failed to share document');
         } finally {
             setLoading(false);
         }
@@ -80,8 +88,8 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div className="flex items-center gap-2">
-                        <Send className="text-green-600" size={20} />
-                        <h2 className="text-lg font-semibold text-gray-800">Share via WhatsApp</h2>
+                        <Send className="text-indigo-600" size={20} />
+                        <h2 className="text-lg font-semibold text-gray-800">Share Document</h2>
                     </div>
                     <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500 hover:text-gray-700">
                         <X size={20} />
@@ -100,33 +108,62 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                     </div>
 
                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Share Channel</label>
+                        <select
+                            value={shareOption}
+                            onChange={(e) => setShareOption(e.target.value as 'whatsapp' | 'email' | 'both')}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        >
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="email">Email</option>
+                            <option value="both">Both (WhatsApp & Email)</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Recipient Name</label>
                         <input
                             type="text"
                             required
                             value={recipientName}
                             onChange={(e) => setRecipientName(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                             placeholder="Enter recipient name"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp Number</label>
-                         <div className="flex">
-                            <span className="inline-flex items-center px-3 border border-r-0 border-gray-200 bg-gray-50 rounded-l-lg text-gray-500 text-sm">
-                                +91
-                            </span>
+                    {(shareOption === 'whatsapp' || shareOption === 'both') && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp Number</label>
+                             <div className="flex">
+                                 <span className="inline-flex items-center px-3 border border-r-0 border-gray-200 bg-gray-50 rounded-l-lg text-gray-500 text-sm">
+                                     +91
+                                 </span>
+                                 <input
+                                     type="tel"
+                                     required
+                                     value={whatsapp}
+                                     onChange={(e) => setWhatsapp(e.target.value)}
+                                     className="flex-1 w-full px-3 py-2 border border-gray-200 rounded-r-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                     placeholder="98765 43210"
+                                 />
+                             </div>
+                        </div>
+                    )}
+
+                    {(shareOption === 'email' || shareOption === 'both') && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
                             <input
-                                type="tel"
+                                type="email"
                                 required
-                                value={whatsapp}
-                                onChange={(e) => setWhatsapp(e.target.value)}
-                                className="flex-1 w-full px-3 py-2 border border-gray-200 rounded-r-lg focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                                placeholder="98765 43210"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                placeholder="recipient@example.com"
                             />
                         </div>
-                    </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Message</label>
@@ -134,7 +171,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                             rows={3}
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all resize-none"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
                             placeholder="Add a message..."
                         />
                     </div>
@@ -152,7 +189,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl bg-green-600 hover:bg-green-700 shadow-green-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2.5 text-white rounded-xl font-medium transition-all shadow-lg hover:shadow-xl bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -160,7 +197,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, type, document
                                     Sending...
                                 </>
                             ) : (
-                                'Share via WhatsApp'
+                                `Share (${shareOption})`
                             )}
                         </button>
                     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, FileText, Download, Edit, MessageCircle, RefreshCw, Save, X } from 'lucide-react';
+import { Plus, Search, FileText, Download, Edit, MessageCircle, RefreshCw, Save, X, Share2 } from 'lucide-react';
 import useHeaderStore from '../../store/headerStore';
 import AddDocument from './AddDocument';
 import ShareModal from './ShareModal';
@@ -167,11 +167,11 @@ const AllDocuments = () => {
                                 <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                                     <button
                                         onClick={() => openShare('whatsapp', { id: 'batch', name: `${selectedIds.size} Documents` })}
-                                        className="flex-1 sm:flex-none justify-center flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors border border-green-100"
-                                        title="Share via WhatsApp"
+                                        className="flex-1 sm:flex-none justify-center flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-100"
+                                        title="Share Document"
                                     >
-                                        <MessageCircle size={14} />
-                                        WhatsApp
+                                        <Share2 size={14} />
+                                        Share
                                     </button>
                                 </div>
                             </div>
@@ -264,10 +264,10 @@ const AllDocuments = () => {
                                             <button
                                                 onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName, url: item.fileContent, documentType: item.documentType, category: item.category, companyName: item.companyName, needsRenewal: item.needsRenewal, renewalDate: item.renewalDate, sn: item.sn })}
 
-                                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-full transition-colors outline-none"
-                                                title="Share via WhatsApp"
+                                                className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors outline-none"
+                                                title="Share Document"
                                             >
-                                                <MessageCircle size={18} />
+                                                <Share2 size={18} />
                                             </button>
                                         </td>
                                         {currentUser?.role === 'admin' && (
@@ -465,10 +465,10 @@ const AllDocuments = () => {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => openShare('whatsapp', { id: item.id, name: item.documentName, url: item.fileContent, documentType: item.documentType, category: item.category, companyName: item.companyName, needsRenewal: item.needsRenewal, renewalDate: item.renewalDate })}
-                                            className="p-1.5 text-green-600 bg-green-50 rounded-lg"
-                                            title="Share via WhatsApp"
+                                            className="p-1.5 text-indigo-600 bg-indigo-50 rounded-lg"
+                                            title="Share Document"
                                         >
-                                            <MessageCircle size={14} />
+                                            <Share2 size={14} />
                                         </button>
 
                                         {currentUser?.role === 'admin' && (
