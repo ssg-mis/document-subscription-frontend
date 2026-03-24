@@ -15,6 +15,7 @@ export interface Loan {
     provided_document_name?: string;
     upload_document?: string;
     remarks?: string;
+    status?: string;
     created_at: string;
 }
 

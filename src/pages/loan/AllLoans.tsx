@@ -19,6 +19,7 @@ interface LoanItem {
     file: string | null;
     fileContent?: string;
     remarks: string;
+    status: string;
 }
 
 const AllLoans = () => {
@@ -44,7 +45,8 @@ const AllLoans = () => {
                 providedDocument: loan.provided_document_name || '-',
                 file: loan.upload_document ? getFileName(loan.upload_document) : null,
                 fileContent: loan.upload_document || undefined,
-                remarks: loan.remarks || '-'
+                remarks: loan.remarks || '-',
+                status: loan.status || 'Pending'
             })));
         } catch (err) {
             console.error('Failed to load loans:', err);
@@ -131,7 +133,12 @@ const AllLoans = () => {
                 {/* Desktop Table */}
                 <div className="hidden md:flex flex-col bg-white rounded-xl shadow-input overflow-hidden h-[calc(100vh-250px)]">
                     <div className="overflow-auto flex-1">
-                        <table className="w-full text-left border-collapse">
+                        {loading ? (
+                            <div className="flex items-center justify-center h-full">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                            </div>
+                        ) : (
+                            <table className="w-full text-left border-collapse">
                             <thead className="sticky top-0 z-10 bg-gray-50">
                                 <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
                                     <th className="px-3 py-2">Serial No.</th>
@@ -143,6 +150,7 @@ const AllLoans = () => {
                                     <th className="px-3 py-2">Loan End Date</th>
                                     <th className="px-3 py-2">Provided Document Name</th>
                                     <th className="px-3 py-2">File</th>
+                                    <th className="px-3 py-2">Status</th>
                                     <th className="px-3 py-2">Remarks</th>
                                 </tr>
                             </thead>
@@ -171,10 +179,19 @@ const AllLoans = () => {
                                             )}
                                         </td>
                                         <td className="px-3 py-2 text-gray-500 italic">{item.remarks}</td>
+                                        <td className="px-3 py-2">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${item.status === 'Completed'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                {item.status}
+                                            </span>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+                        )}
                     </div>
                 </div>
 
@@ -192,10 +209,13 @@ const AllLoans = () => {
                                         <p className="text-xs text-gray-500 mt-0.5">{item.bankName} • {item.sn}</p>
                                     </div>
                                 </div>
-                                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
-                                    Active
-                                </span>
-                            </div>
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${item.status === 'Completed'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                        {item.status}
+                                    </span>
+                                </div>
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between text-sm">
