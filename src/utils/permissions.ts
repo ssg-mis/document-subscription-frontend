@@ -20,6 +20,9 @@ export const getDbPageString = (path: string): string => {
       if (page === 'All' && system === 'Document') return 'Document/All';
       if (page === 'All' && system === 'Subscription') return 'Subscription/All';
       
+      // Handle acronyms like NOC
+      if (page === 'Noc' && system === 'Loan') return 'Loan/NOC';
+      
       return `${system}/${page}`;
   }
   
