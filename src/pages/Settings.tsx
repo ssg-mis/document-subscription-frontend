@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, Bell, Shield, X, Check, Search, RefreshCw } from 'lucide-react';
+import { User, Shield, X, Check, Search, RefreshCw } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import useHeaderStore from '../store/headerStore';
 import { toast } from 'react-hot-toast';
@@ -24,6 +24,7 @@ interface FormData {
     password: string;
     role: string;
     email: string;
+    name: string; // Added name field
     department: string;
     systemAccess: string[];
     pageAccess: string[];
@@ -50,6 +51,7 @@ const Settings = () => {
         password: '',
         role: 'employee',
         email: '',
+        name: '', // Added name to FormData
         department: '',
         systemAccess: ['subscription', 'document'],
         pageAccess: []
@@ -133,12 +135,28 @@ const Settings = () => {
         setEditingUser(user);
         setFormData({
             username: user.user_name,
-            password: user.password || '',
+            password: '', // Don't show existing password
             role: user.role || 'employee',
             email: user.email_id || '',
+            name: user.user_name || '', // Using user_name as name if name is missing
             department: user.department || '',
             systemAccess: user.systemAccess || [],
             pageAccess: user.pageAccess || []
+        });
+        setIsModalOpen(true);
+    };
+
+    const openAddUserModal = () => {
+        setEditingUser(null);
+        setFormData({
+            username: '',
+            password: '',
+            role: 'employee',
+            email: '',
+            name: '',
+            department: '',
+            systemAccess: [],
+            pageAccess: []
         });
         setIsModalOpen(true);
     };
@@ -168,18 +186,38 @@ const Settings = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!editingUser) {
-            toast.error('Only editing existing users is supported via this interface');
-            return;
-        }
-
         try {
+            let userId = editingUser?.id;
+
+            if (!editingUser) {
+                // Step 1: Create User
+                const createRes = await authFetch(`${API_BASE_URL}/users/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: formData.username,
+                        name: formData.name || formData.username,
+                        email: formData.email,
+                        password: formData.password,
+                        role: formData.role
+                    })
+                });
+
+                if (!createRes.ok) {
+                    const errorData = await createRes.json();
+                    throw new Error(errorData.error || 'Failed to create user');
+                }
+
+                const createdData = await createRes.json();
+                userId = createdData.user.id;
+            }
+
+            // Step 2: Update user access
             // Filter pages to ensure we don't save pages for systems that are no longer selected
             const validPages = getAvailablePages();
             const filteredPages = (formData.pageAccess || []).filter(page => validPages.includes(page));
 
-            // Update user access
-            const res = await authFetch(`${API_BASE_URL}/settings/users/${editingUser.id}/access`, {
+            const res = await authFetch(`${API_BASE_URL}/settings/users/${userId}/access`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -188,14 +226,15 @@ const Settings = () => {
                 })
             });
 
-            if (!res.ok) throw new Error('Failed to update user');
+            if (!res.ok) throw new Error('Failed to update user access');
 
-            toast.success('User access updated successfully');
+            toast.success(editingUser ? 'User access updated successfully' : 'User created successfully');
             setIsModalOpen(false);
             fetchUsers();
-        } catch (err) {
-            console.error('Failed to update user:', err);
-            toast.error('Failed to update user');
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error('Failed to save user:', error);
+            toast.error(error.message || 'Failed to save user');
         }
     };
 
@@ -310,10 +349,19 @@ const Settings = () => {
                                     onClick={fetchUsers}
                                     disabled={loading}
                                     className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                    title="Refresh List"
                                 >
                                     <RefreshCw className={`h-5 w-5 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
                                 </button>
                             </div>
+
+                            <button
+                                onClick={openAddUserModal}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-bold shadow-md shadow-indigo-100"
+                            >
+                                <User size={18} />
+                                Add New User
+                            </button>
                         </div>
 
                         {/* Loading State */}
@@ -474,29 +522,85 @@ const Settings = () => {
                         <form onSubmit={handleSubmit} className="p-6 space-y-5">
                             <div className="space-y-4">
                                 {/* Read-only user info */}
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Username</label>
-                                        <div className="p-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
-                                            {formData.username}
-                                        </div>
+                                        {editingUser ? (
+                                            <div className="p-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
+                                                {formData.username}
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.username}
+                                                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                                className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none"
+                                                placeholder="Enter username"
+                                            />
+                                        )}
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Role</label>
-                                        <div className="p-3 bg-gray-100 rounded-xl text-gray-600 font-medium capitalize">
-                                            {formData.role}
+                                    {!editingUser && (
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Display Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.name || ''}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none"
+                                                placeholder="Enter full name"
+                                            />
                                         </div>
+                                    )}
+                                    <div className={editingUser ? '' : 'sm:col-span-2'}>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Email</label>
+                                        {editingUser && formData.email ? (
+                                            <div className="p-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
+                                                {formData.email}
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="email"
+                                                required
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none"
+                                                placeholder="Enter email address"
+                                            />
+                                        )}
+                                    </div>
+                                    {!editingUser && (
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Password</label>
+                                            <input
+                                                type="password"
+                                                required
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none"
+                                                placeholder="Enter password"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className={editingUser ? '' : 'sm:col-span-2'}>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Role</label>
+                                        {editingUser ? (
+                                            <div className="p-3 bg-gray-100 rounded-xl text-gray-600 font-medium capitalize">
+                                                {formData.role}
+                                            </div>
+                                        ) : (
+                                            <select
+                                                value={formData.role}
+                                                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                                                className="w-full p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none"
+                                            >
+                                                <option value="employee">Employee</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        )}
                                     </div>
                                 </div>
-
-                                {formData.email && (
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Email</label>
-                                        <div className="p-3 bg-gray-100 rounded-xl text-gray-600 font-medium">
-                                            {formData.email}
-                                        </div>
-                                    </div>
-                                )}
 
                                 {/* System Access */}
                                 <div>
